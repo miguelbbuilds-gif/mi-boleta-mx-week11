@@ -1,0 +1,16 @@
+{
+  "executedAt": "2026-10-26T02:22:25.823Z",
+  "viewport": "390x844",
+  "persona": "Don Ernesto",
+  "notes": [
+    "El resumen abre en el teléfono y muestra el distintivo DEMO.",
+    "El ejemplo deja PET, 12.5 kg y el total $106.25 en el mismo formulario, antes de los campos opcionales.",
+    "No hay campos de RFC ni de cuenta bancaria.",
+    "Al guardar aparecen imprimir en papel y copiar texto. La pantalla no envía WhatsApp.",
+    "La aclaración confirma que la boleta original no cambió.",
+    "Precios se anuncia como referencia interna, no como mercado verificado.",
+    "El equilibrio del escenario base decía «Patios de equilibrio 3 Patios de equilibrio = costos fijos mensuales ÷ (cuota por patio − costo variable por patio), redondeado hacia arriba. Si la cuota no cubre el costo variable, no hay equilibrio. Número de patios para cubrir hospedaje, soporte y el costo variable de cada patio con la cuota supuesta.». Con cuota 0 pasó a «Patios de equilibrio Sin equilibrio Patios de equilibrio = costos fijos mensuales ÷ (cuota por patio − costo variable por patio), redondeado hacia arriba. Si la cuota no cubre el costo variable, no hay equilibrio. La cuota no cubre el costo variable de un patio. Sumar patios aumenta la pérdida. No hay punto de equilibrio.». El valor del material no se volvió cero."
+  ],
+  "before": "Patios de equilibrio 3 Patios de equilibrio = costos fijos mensuales ÷ (cuota por patio − costo variable por patio), redondeado hacia arriba. Si la cuota no cubre el costo variable, no hay equilibrio. Número de patios para cubrir hospedaje, soporte y el costo variable de cada patio con la cuota supuesta.",
+  "after": "Patios de equilibrio Sin equilibrio Patios de equilibrio = costos fijos mensuales ÷ (cuota por patio − costo variable por patio), redondeado hacia arriba. Si la cuota no cubre el costo variable, no hay equilibrio. La cuota no cubre el costo variable de un patio. Sumar patios aumenta la pérdida. No hay punto de equilibrio."
+}
