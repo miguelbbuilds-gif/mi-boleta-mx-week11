@@ -1,6 +1,36 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 
+const ROUTES = [
+  ['/', 'Cada kilo cuenta. Cada peso también.'],
+  ['/resumen', 'Lo que ya quedó escrito'],
+  ['/nueva', 'Registrar una entrega'],
+  ['/boletas', 'Archivo de este navegador'],
+  ['/precios', 'Referencia interna, no precio de mercado'],
+  ['/modelo', 'Quién paga la transparencia'],
+  ['/aclaraciones', 'Revisar sin borrar'],
+  ['/evidencia', 'Una referencia no es una prueba'],
+  ['/piloto', 'Medir daño, no solo kilos'],
+  ['/privacidad', 'Lo que este navegador guarda'],
+  ['/condiciones', 'Seis condiciones de este borrador'],
+];
+
+test('las páginas abren y la interpretación queda en simulación', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  for (const [path, heading] of ROUTES) {
+    await page.goto(path);
+    await expect(page.getByRole('heading', { name: heading })).toBeVisible();
+  }
+  await page.goto('/nueva');
+  await page.getByRole('button', { name: 'Proponer campos' }).click();
+  await expect(page.getByTestId('sim-badge')).toHaveText('SIMULACIÓN');
+  await expect(page.getByTestId('interpret-result')).toContainText('SIMULACIÓN');
+  await expect(page.getByTestId('interpret-result')).toContainText('12.5');
+  await expect(page.getByText(/Failed to parse/i)).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
 test('escritorio muestra la barra lateral', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/resumen');

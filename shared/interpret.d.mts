@@ -16,6 +16,8 @@ export interface SampleText {
 
 export function extractReceiptSuggestions(text: string): SuggestionSet;
 
+export function usableApiKey(value: unknown): string;
+
 export function interpretReceipt(
   text: string,
   options?: { apiKey?: string; model?: string; fetchImpl?: typeof fetch },

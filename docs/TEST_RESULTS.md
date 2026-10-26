@@ -46,6 +46,33 @@ ok  Don Ernesto ve kilos, precio y total sin entregar RFC
 
 La tercera prueba escribió `docs/persona-run.json`.
 
+## Corrida del 25 de octubre de 2026, después de corregir `/api/interpret`
+
+Misma máquina. `npx tsc -b --pretty false` terminó con código 0.
+
+`npm run build` terminó con código 0. Vite 8.3.5 escribió `dist/index.html` (0.99 kB, gzip 0.53 kB), CSS de 24.95 kB (gzip 5.73 kB) y JS de 751.14 kB (gzip 223.20 kB). El aviso de paquete mayor a 500 kB se repitió. La compilación no falló.
+
+`npx vitest run` terminó con código 0 en 4.17 s:
+
+```
+Test Files  9 passed (9)
+Tests       29 passed (29)
+```
+
+Las cuatro pruebas nuevas cubren una clave ausente o de ejemplo, una respuesta del modelo que no es JSON, el texto `Failed to parse JSON response` y el formulario cuando `/api/interpret` devuelve ese texto.
+
+`npx playwright test` terminó con código 0 en 8.9 s, contra el preview del build nuevo en `http://127.0.0.1:4173`:
+
+```
+ok  las páginas abren y la interpretación queda en simulación
+ok  escritorio muestra la barra lateral
+ok  el menú móvil abre el modelo
+ok  Don Ernesto ve kilos, precio y total sin entregar RFC
+4 passed
+```
+
+La primera recorrió inicio, resumen, nueva boleta, archivo, precios, modelo, aclaraciones, evidencia, métricas, datos y condiciones. En nueva boleta, Proponer campos dejó el distintivo SIMULACIÓN, el peso 12.5 y ningún error de página. La prueba de Don Ernesto volvió a escribir `docs/persona-run.json`.
+
 ## Lo que no se afirma
 
 No se corrió una suite en otro sistema operativo. No se hizo una prueba de carga. No se llamó a un modelo de lenguaje real: no hay `AI_API_KEY` en este entorno, y el distintivo de la pantalla es SIMULACIÓN.

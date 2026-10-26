@@ -29,7 +29,7 @@ Mi Boleta MX es una aplicación de una sola página. El navegador guarda el arch
 
 ## Interpretación de texto
 
-`shared/interpret.mjs` extrae material, peso, precio y otros campos con reglas. No calcula el total. `api/interpret.js` y el middleware de Vite llaman a la misma función. Si `AI_API_KEY` existe solo en el servidor, el endpoint intenta un modelo compatible con la API de OpenAI y, si falla, vuelve a la simulación. La interfaz exige una casilla de confirmación antes de copiar sugerencias al formulario. Una boleta ya guardada no se modifica.
+`shared/interpret.mjs` extrae material, peso, precio y otros campos con reglas. No calcula el total. `api/interpret.js` y el middleware de Vite, incluido el de `vite preview`, llaman a la misma función. Una clave vacía, corta o de ejemplo no sale del modo simulación. Si el modelo responde algo que no es JSON, el servidor también vuelve a simulación. El navegador lee la respuesta como texto: si no puede interpretarla, muestra las reglas locales y el distintivo SIMULACIÓN, sin publicar el fallo de lectura. La interfaz exige una casilla de confirmación antes de copiar sugerencias al formulario. Una boleta ya guardada no se modifica.
 
 ## Lo que no hay
 

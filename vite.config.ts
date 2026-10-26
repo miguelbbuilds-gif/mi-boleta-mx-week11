@@ -14,26 +14,46 @@ function readBody(req: IncomingMessage): Promise<string> {
   });
 }
 
+function textFromRaw(raw: string) {
+  if (!raw.trim()) return '';
+  try {
+    const parsed = JSON.parse(raw) as { text?: unknown } | string;
+    if (typeof parsed === 'string') return parsed;
+    if (parsed && typeof parsed.text === 'string') return parsed.text;
+  } catch {
+    return raw;
+  }
+  return raw;
+}
+
+function attachInterpret(apiKey: string | undefined, model: string | undefined) {
+  return (req: IncomingMessage, res: ServerResponse) => {
+    const send = (payload: unknown) => {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      res.end(JSON.stringify(payload));
+    };
+    if (req.method !== 'POST') {
+      void interpretReceipt('', { apiKey: '' }).then(send);
+      return;
+    }
+    void readBody(req)
+      .then((raw) => interpretReceipt(textFromRaw(raw), { apiKey, model }))
+      .then(send)
+      .catch(() => interpretReceipt('', { apiKey: '' }).then(send));
+  };
+}
+
 function interpretApi(apiKey: string | undefined, model: string | undefined): Plugin {
+  const handle = attachInterpret(apiKey, model);
   return {
     name: 'interpret-api',
     configureServer(server) {
-      server.middlewares.use('/api/interpret', (req, res, next) => {
-        if (req.method !== 'POST') {
-          next();
-          return;
-        }
-        void readBody(req)
-          .then(async (raw) => {
-            const body = raw ? (JSON.parse(raw) as { text?: string }) : {};
-            const result = await interpretReceipt(body.text ?? '', { apiKey, model });
-            const response = res as ServerResponse;
-            response.statusCode = 200;
-            response.setHeader('Content-Type', 'application/json; charset=utf-8');
-            response.end(JSON.stringify(result));
-          })
-          .catch(next);
-      });
+      server.middlewares.use('/api/interpret', handle);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use('/api/interpret', handle);
     },
   };
 }

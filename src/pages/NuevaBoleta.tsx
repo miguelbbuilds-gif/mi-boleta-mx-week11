@@ -4,18 +4,11 @@ import { ReceiptView } from '../components/ReceiptView.tsx';
 import { Card, DemoBadge, Field, PageHeader, PrimaryButton, SecondaryButton, inputClass } from '../components/ui.tsx';
 import { useApp } from '../context/AppState.tsx';
 import { formatMXN } from '../lib/format.ts';
-import { SAMPLE_TEXTS, extractReceiptSuggestions } from '../lib/interpret.ts';
+import { SAMPLE_TEXTS, acceptInterpretation, localSimulation, type Interpretation } from '../lib/interpret.ts';
 import { quoteTotal } from '../lib/money.ts';
 import { EVIDENCE_STATUSES, MATERIALS, PAYMENT_STATUSES, type Receipt, type ReceiptDraft } from '../lib/types.ts';
 import { emptyDraft } from '../lib/validation.ts';
 import { evidenceLabel, paymentLabel } from '../lib/labels.ts';
-
-interface Interpretation {
-  mode: 'simulacion' | 'llm';
-  disclaimer: string;
-  suggestions: Record<string, string | undefined>;
-  unmatched?: string[];
-}
 
 export function NuevaBoleta() {
   const { data, addReceipt } = useApp();
@@ -71,24 +64,18 @@ export function NuevaBoleta() {
   async function interpret() {
     setBusy(true);
     setConfirmSuggestions(false);
+    const local = localSimulation(sample);
+    setInterpretation(local);
     try {
       const response = await fetch('/api/interpret', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: sample }),
       });
-      if (!response.ok) throw new Error('http');
-      const payload = (await response.json()) as Interpretation;
-      setInterpretation(payload);
+      const raw = await response.text();
+      setInterpretation(acceptInterpretation(raw, sample));
     } catch {
-      const local = extractReceiptSuggestions(sample);
-      setInterpretation({
-        mode: 'simulacion',
-        disclaimer:
-          'SIMULACIÓN local: el servidor no respondió. Estas sugerencias salen de reglas fijas en el navegador. No es un modelo de lenguaje y no cambian una boleta ya guardada.',
-        suggestions: local.suggestions,
-        unmatched: local.unmatched,
-      });
+      setInterpretation(local);
     } finally {
       setBusy(false);
     }
@@ -227,7 +214,7 @@ export function NuevaBoleta() {
             <textarea className={inputClass} rows={5} value={sample} onChange={(event) => setSample(event.target.value)} aria-label="Texto de boleta para interpretar" />
             <SecondaryButton onClick={() => void interpret()}>{busy ? 'Leyendo…' : 'Proponer campos'}</SecondaryButton>
             {interpretation ? (
-              <div className="rounded-xl bg-slate-50 p-3 text-sm">
+              <div className="rounded-xl bg-slate-50 p-3 text-sm" data-testid="interpret-result">
                 <p>{interpretation.disclaimer}</p>
                 <ul className="mt-2 space-y-1">
                   {Object.entries(interpretation.suggestions).map(([key, value]) => (

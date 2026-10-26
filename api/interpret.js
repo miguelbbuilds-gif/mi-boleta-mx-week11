@@ -1,31 +1,77 @@
-import { extractReceiptSuggestions, interpretReceipt } from '../shared/interpret.mjs';
+import { interpretReceipt } from '../shared/interpret.mjs';
 
-function send(res, status, payload) {
-  res.statusCode = status;
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+function textFromRaw(raw) {
+  const source = String(raw ?? '');
+  if (!source.trim()) return '';
+  try {
+    const parsed = JSON.parse(source);
+    if (typeof parsed === 'string') return parsed;
+    if (parsed && typeof parsed === 'object' && typeof parsed.text === 'string') return parsed.text;
+  } catch {
+    return source;
+  }
+  return source;
+}
+
+async function readRaw(req) {
+  try {
+    if (typeof req?.text === 'function') return await req.text();
+  } catch {
+    return '';
+  }
+  if (typeof req?.body === 'string') return req.body;
+  if (req?.body && Buffer.isBuffer(req.body)) return req.body.toString('utf8');
+  if (req?.body && typeof req.body === 'object') {
+    try {
+      return JSON.stringify(req.body);
+    } catch {
+      return '';
+    }
+  }
+  try {
+    const chunks = [];
+    for await (const chunk of req) chunks.push(Buffer.from(chunk));
+    return Buffer.concat(chunks).toString('utf8');
+  } catch {
+    return '';
+  }
+}
+
+async function buildPayload(raw) {
+  try {
+    return await interpretReceipt(textFromRaw(raw), {
+      apiKey: process.env.AI_API_KEY,
+      model: process.env.AI_MODEL,
+    });
+  } catch {
+    return interpretReceipt('', { apiKey: '' });
+  }
+}
+
+function sendJson(res, payload) {
+  res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store');
   res.end(JSON.stringify(payload));
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    send(res, 405, { error: 'Método no permitido' });
+  const payload = await buildPayload(req?.method === 'POST' ? await readRaw(req) : '');
+  if (res && typeof res.end === 'function') {
+    sendJson(res, payload);
     return;
   }
-  try {
-    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body ?? {});
-    const result = await interpretReceipt(String(body.text ?? ''), {
-      apiKey: process.env.AI_API_KEY,
-      model: process.env.AI_MODEL,
-    });
-    send(res, 200, result);
-  } catch {
-    const fallback = extractReceiptSuggestions('');
-    send(res, 200, {
-      mode: 'simulacion',
-      fallback: true,
-      disclaimer: 'No se pudo leer el texto. Ninguna boleta cambió.',
-      suggestions: fallback.suggestions,
-      unmatched: fallback.unmatched,
-    });
-  }
+  return new Response(JSON.stringify(payload), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  });
 }

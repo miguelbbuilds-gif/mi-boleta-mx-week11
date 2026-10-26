@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AppStateProvider } from '../context/AppState.tsx';
 import { NuevaBoleta } from '../pages/NuevaBoleta.tsx';
 
@@ -27,4 +27,23 @@ describe('formulario de boleta', () => {
     await user.click(screen.getByRole('button', { name: 'Guardar boleta' }));
     expect((await screen.findByRole('alert')).textContent).toMatch(/mayor que cero/i);
   });
+
+  it('muestra SIMULACIÓN cuando el servidor no devuelve JSON', async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('Failed to parse JSON response', { status: 200, headers: { 'Content-Type': 'text/plain' } })),
+    );
+    renderForm();
+    await user.click(screen.getByRole('button', { name: 'Proponer campos' }));
+    expect((await screen.findByTestId('interpret-result')).textContent).toMatch(/SIMULACIÓN/);
+    expect(screen.getByTestId('sim-badge').textContent).toBe('SIMULACIÓN');
+    expect(screen.getByTestId('interpret-result').textContent).toMatch(/PET/);
+    expect(screen.getByTestId('interpret-result').textContent).not.toMatch(/Failed to parse/);
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });

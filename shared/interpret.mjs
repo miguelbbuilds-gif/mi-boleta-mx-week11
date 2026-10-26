@@ -102,17 +102,36 @@ export function extractReceiptSuggestions(text) {
   return { suggestions: sanitizeSuggestionInput(suggestions), unmatched };
 }
 
-export async function interpretReceipt(text, options = {}) {
+const PLACEHOLDER_KEY = /your|example|changeme|placeholder|insert|dummy|fake|xxx|todo|clave|api[_-]?key|sk-test/i;
+
+export function usableApiKey(value) {
+  const key = String(value ?? '').trim();
+  if (key.length < 20) return '';
+  if (PLACEHOLDER_KEY.test(key)) return '';
+  return key;
+}
+
+function simulationResult(text, fallback) {
   const extracted = extractReceiptSuggestions(text);
-  const apiKey = options.apiKey || '';
-  const simulation = {
+  return {
     mode: 'simulacion',
-    fallback: false,
+    fallback,
     disclaimer:
-      'SIMULACIÓN: no hay una clave de IA en el servidor. Las sugerencias salen de reglas fijas sobre el texto. No es un modelo de lenguaje y no modifican una boleta guardada.',
+      'SIMULACIÓN: no hay una clave de IA válida en el servidor. Las sugerencias salen de reglas fijas sobre el texto. No es un modelo de lenguaje y no modifican una boleta guardada.',
     suggestions: extracted.suggestions,
     unmatched: extracted.unmatched,
   };
+}
+
+async function readProviderJson(response) {
+  const raw = typeof response?.text === 'function' ? await response.text() : '';
+  return JSON.parse(raw);
+}
+
+export async function interpretReceipt(text, options = {}) {
+  const source = String(text ?? '');
+  const simulation = simulationResult(source, false);
+  const apiKey = usableApiKey(options.apiKey);
   if (!apiKey) return simulation;
 
   try {
@@ -134,12 +153,12 @@ export async function interpretReceipt(text, options = {}) {
             content:
               'Extrae campos de una boleta de reciclaje. Responde solo JSON con las claves material, weightKg, pricePerKg, recyclerAlias, yardName, paymentStatus y notes. Usa null si falta el dato. No calcules ni incluyas el total. Materiales: PET, Cartón, Aluminio, Cobre, Fierro, Vidrio, Otro. paymentStatus: pagado, pendiente o parcial.',
           },
-          { role: 'user', content: String(text ?? '').slice(0, 2000) },
+          { role: 'user', content: source.slice(0, 2000) },
         ],
       }),
     });
     if (!response.ok) throw new Error('provider');
-    const payload = await response.json();
+    const payload = await readProviderJson(response);
     const content = payload.choices?.[0]?.message?.content ?? '{}';
     const parsed = JSON.parse(String(content).replace(/```json|```/g, ''));
     return {
@@ -155,7 +174,7 @@ export async function interpretReceipt(text, options = {}) {
       ...simulation,
       fallback: true,
       disclaimer:
-        'La llamada al modelo falló. Se muestran sugerencias de SIMULACIÓN. Ninguna boleta guardada cambió.',
+        'SIMULACIÓN: la llamada al modelo no devolvió un resultado usable. Estas sugerencias salen de reglas fijas. Ninguna boleta guardada cambió.',
     };
   }
 }
