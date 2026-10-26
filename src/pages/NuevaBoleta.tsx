@@ -69,7 +69,7 @@ export function NuevaBoleta() {
     try {
       const response = await fetch('/api/interpret', {
         method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        headers: { Accept: 'application/json', 'Content-Type': 'text/plain; charset=utf-8' },
         body: JSON.stringify({ text: sample }),
       });
       const raw = await response.text();

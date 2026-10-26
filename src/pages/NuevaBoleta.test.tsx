@@ -41,6 +41,9 @@ describe('formulario de boleta', () => {
     expect(screen.getByTestId('interpret-result').textContent).toMatch(/PET/);
     expect(screen.getByTestId('interpret-result').textContent).not.toMatch(/Failed to parse/);
     expect(screen.queryByRole('alert')).toBeNull();
+    const [, request] = vi.mocked(fetch).mock.calls[0] ?? [];
+    const headers = new Headers((request as RequestInit | undefined)?.headers);
+    expect(headers.get('Content-Type')).toBe('text/plain; charset=utf-8');
   });
 });
 

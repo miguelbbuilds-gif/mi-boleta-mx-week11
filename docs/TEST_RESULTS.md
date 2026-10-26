@@ -73,6 +73,8 @@ ok  Don Ernesto ve kilos, precio y total sin entregar RFC
 
 La primera recorrió inicio, resumen, nueva boleta, archivo, precios, modelo, aclaraciones, evidencia, métricas, datos y condiciones. En nueva boleta, Proponer campos dejó el distintivo SIMULACIÓN, el peso 12.5 y ningún error de página. La prueba de Don Ernesto volvió a escribir `docs/persona-run.json`.
 
+Después de cambiar el envío a `text/plain`, `npx vitest run` volvió a terminar con código 0: 9 archivos y 29 pruebas, en 5.36 s. La prueba del formulario comprueba que la petición no usa `Content-Type: application/json`. `npm run build` también terminó con código 0; el JS quedó en 751.15 kB (gzip 223.20 kB), con el mismo aviso de tamaño. `npx playwright test` volvió a terminar con código 0 en 8.7 s: las mismas 4 pruebas, incluida la de simulación.
+
 ## Lo que no se afirma
 
 No se corrió una suite en otro sistema operativo. No se hizo una prueba de carga. No se llamó a un modelo de lenguaje real: no hay `AI_API_KEY` en este entorno, y el distintivo de la pantalla es SIMULACIÓN.
