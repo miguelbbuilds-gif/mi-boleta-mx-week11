@@ -9,8 +9,8 @@ Marcado con lo que esta sesión realmente dejó. Una casilla vacía no se debe p
 - [x] Documentos del paquete en `/docs`.
 - [x] Distintivo de demo y de simulación visibles.
 - [x] Seis condiciones del borrador visibles en la aplicación. No hay voto de equipo documentado.
-- [ ] Publicación en GitHub. Se llena en `DEPLOYMENT.md` con el resultado real.
-- [ ] Dos despliegues en Vercel. Se llena igual. Si falta acceso, queda el bloqueo y no una URL inventada.
+- [x] Publicación en GitHub: https://github.com/miguelbbuilds-gif/mi-boleta-mx-week11
+- [x] Dos despliegues en Vercel, ambos READY. Alias público: https://mi-boleta-mx-week11.vercel.app. Detalle en `DEPLOYMENT.md`.
 - [ ] Video. Solo existe el guion en `DEMO_SCRIPT.md`. No se grabó.
 
 ## Cómo correrlo
